@@ -93,6 +93,32 @@ public:
 
 
 
+template<class T>
+struct is_pointer
+{
+    static const bool value = false;
+};
+template<class T>
+struct is_pointer<T*>
+{
+    static const bool value = true;
+};
+
+
+template<class T>
+struct is_ref
+{
+    static const bool value = false;
+};
+template<class T>
+struct is_ref<T&>
+{
+    static const bool value = true;
+};
+
+
+
+
 typedef int Func(int, char, float);
 
 struct A
@@ -105,10 +131,34 @@ struct A
 };
 
 
+bool f1(int x)
+{
+    return x + 2;
+}
+long long f2(int x)
+{
+    return x * 5;
+}
+
+struct Test
+{
+    bool foo(int a);
+    bool boo(int b);
+};
 
 
 int main() {
-    std::cout << has_function<A, Func>::value << std::endl;
+    /*std::cout << has_function<A, Func>::value << std::endl;*/
+    
+    /*std::cout << std::is_same<
+        decltype(&Test::foo),
+        decltype(f1)>::value
+    << std::endl;*/
+    
+    std::vector<int> V {2, 3, 4};
+    
+    std::cout << is_pointer<decltype(&*V.begin())>::value << "\n" <<
+                 is_ref<decltype(*V.begin())>::value << "\n\n";
     
     return 0;
 }
