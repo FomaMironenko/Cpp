@@ -42,7 +42,6 @@ void Text::insert(char c)
 {
     str.insert(position, 1, c);
     Npos++;
-    position++;
 }
 
 void Text::clear()
@@ -112,14 +111,14 @@ unsigned Lines::click(unsigned i, unsigned j)
 {
     assert(i < scrl.height && j < width);
     const std::array<unsigned, 2> & line =
-        (i + scrl.firstLine < lines.size() ?
+        (i + scrl.firstLine < scrl.Npos ?
          lines[i + scrl.firstLine] :
          lines.back());
-    scrl.position = (i + scrl.firstLine < lines.size() ?
+    scrl.position = (i + scrl.firstLine < scrl.Npos ?
                      i + scrl.firstLine :
-                     lines.size() - scrl.firstLine);
-    if(j + line[0] < line[1]) {
+                     scrl.Npos - 1);
+    if(j + line[0] <= line[1]) {
         return line[0] + j;
     }
-    return line[1];
+    return line[1] + 1;
 }

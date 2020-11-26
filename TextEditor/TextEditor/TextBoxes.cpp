@@ -255,7 +255,7 @@ void TextEditor::print(ArrayHandler & arr)
         if(fstL + i < scroll->Npos)
         {
             unsigned fstInd = txtLns->lines[fstL + i][0];
-            for(int j = txtLns->lines[i][0]; j < txtLns->lines[i][1]; j++)
+            for(int j = txtLns->lines[i][0]; j <= txtLns->lines[i][1]; j++)
             {
                 if(text.str[j] != '\n') {
                     arr[i][j - fstInd] = text.str[j];
@@ -293,58 +293,65 @@ bool TextEditor::click(unsigned i, unsigned j)
     cursor.scrlInd = scroll->position;
     cursor.textInd = text.position;
     cursor.curH = scroll->position - scroll->firstLine;
-    cursor.curW = std::min(txtLns->lines[cursor.curH][1] -
-                       txtLns->lines[cursor.curH][0],
-                       j);
+    cursor.curW = std::min(txtLns->lines[scroll->position][1] -
+                           txtLns->lines[scroll->position][0],
+                           j);
     return true;
 }
 
 bool TextEditor::mvUp()
 {
-    if(scroll->position == scroll->firstLine) {
-        if(scroll->position != 0) {
-            scroll->firstLine--;
-            assert(cursor.curH == 0);
-            click(cursor.curH, cursor.curW);
-        } else {
+    assert(cursor.curH == scroll->position - scroll->firstLine);
+    if(cursor.curH == 0) {
+        if(scroll->position == 0) {
             return false;
         }
-    } else {
-        click(cursor.curH - 1, cursor.curW);
+        scroll->firstLine--;
+        return click(cursor.curH, cursor.curW);
     }
-    return true;
+    return click(cursor.curH - 1, cursor.curW);
 }
 
 bool TextEditor::mvDown()
 {
-    if(scroll->position ==
-       scroll->firstLine + scroll->height - 1)
+    assert(cursor.curH == scroll->position - scroll->firstLine);
+    if(cursor.curH == scroll->height - 1)
     {
-        if(scroll->position != scroll->Npos - 1) {
-            scroll->firstLine++;
-            click(cursor.curH, cursor.curW);
-        } else {
+        if(scroll->position == scroll->Npos - 1) {
             return false;
         }
-    } else {
-        click(cursor.curH + 1, cursor.curW);
+        scroll->firstLine++;
+        return click(cursor.curH, cursor.curW);
     }
-    return true;
+    return click(cursor.curH + 1, cursor.curW);
 }
 
 bool TextEditor::mvLeft()
 {
-    return false;
+    if(cursor.curW == 0) {
+        cursor.curW = txtLns->width - 1;
+        return mvUp();
+    }
+    return click(cursor.curH, cursor.curW - 1);
 }
 
 bool TextEditor::mvRight()
 {
-    return false;
+    const auto & line = txtLns->lines[scroll->position];
+    if(cursor.curW == line[1] - line[0]) {
+        cursor.curW = 0;
+        return mvDown();
+    }
+    return click(cursor.curH, cursor.curW + 1);
 }
 
 void TextEditor::write(char c)
 {
     text.insert(c);
+    txtLns->render();
+    // should always be able to move right
+    // because a new character was added
+    assert(mvRight());
 }
 
 

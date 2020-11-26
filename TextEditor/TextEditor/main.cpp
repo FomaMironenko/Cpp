@@ -48,7 +48,7 @@ void testMove()
 
 void testTextEditor()
 {
-    std::string defaultStr = "hello the best world of all!";
+    std::string defaultStr = "hello best world of all";
     std::string customStr;
     std::cout << "Enter any text:\n";
     char cur;
@@ -62,18 +62,32 @@ void testTextEditor()
     tab->addBox(FrameBox::create(TextEditor::create(defaultStr, 6, 8)), 4, 0);
     tab->addBox(FrameBox::create(TextEditor::create(customStr, 6, 8)), 4, 10);
     
-    FrameBox *defEdifFrame =
+    ArrayHandler arr1(master->height(), master->width());
+    master->print(arr1);
+    
+    FrameBox *defEditorFrame =
         dynamic_cast<FrameBox*>((*tab)[0]->getBox());
-    assert(defEdifFrame);
+    assert(defEditorFrame);
     TextEditor *defaultEditor =
-        defEdifFrame->getEditor();
+        defEditorFrame->getEditor();
     assert(defaultEditor);
     defaultEditor->click(0, 5);
-    defaultEditor->write(',');
+    std::string toAdd(", the");
+    for (auto & c : toAdd) {
+        defaultEditor->write(c);
+    }
+    defaultEditor->mvDown();
+    defaultEditor->mvRight();
+    defaultEditor->mvDown();
+    defaultEditor->mvDown();
+    defaultEditor->write('!');
     
-    ArrayHandler arr(master->height(), master->width());
-    master->print(arr);
-    arr.show();
+    ArrayHandler arr2(master->height(), master->width());
+    master->print(arr2);
+    
+    arr1.show();
+    std::cout << "\n\n";
+    arr2.show();
 }
 
 
