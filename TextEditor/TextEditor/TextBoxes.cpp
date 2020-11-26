@@ -5,6 +5,7 @@
 //  Created by Foma Mironenko on 12.11.2020.
 //
 
+#include <algorithm>
 #include "TextBoxes.hpp"
 
 ArrayHandler::ArrayHandler(unsigned h,
@@ -217,6 +218,11 @@ void FrameBox::print(ArrayHandler & arr)
     data->print(arr);
 }
 
+TextEditor *FrameBox::getEditor()
+{
+   return dynamic_cast<TextEditor*>(data->getBox());
+}
+
 
 
 ScriptBox::ScriptBox(const std::string s):
@@ -236,4 +242,110 @@ LineBox::LineBox(const std::string s):
         this->addBox(CharBox::create(s[i]), 0, i, true);
     }
 }
+
+
+void TextEditor::print(ArrayHandler & arr)
+{
+    text.helper.render();
+    unsigned fstL = scroll->firstLine;
+    assert(txtLns->width == arr.w  - 2);
+    assert(scroll->height == arr.h);
+    for(int i = 0; i < arr.h; i++ )
+    {
+        if(fstL + i < scroll->Npos)
+        {
+            unsigned fstInd = txtLns->lines[fstL + i][0];
+            for(int j = txtLns->lines[i][0]; j < txtLns->lines[i][1]; j++)
+            {
+                if(text.str[j] != '\n') {
+                    arr[i][j - fstInd] = text.str[j];
+                }
+            }
+        }
+        if(i == scroll->position) {
+            arr[i - fstL][arr.w - 1] = '*';
+        } else {
+            arr[i - fstL][arr.w - 1] = '^';
+        }
+        arr[i - fstL][arr.w - 2] = '|';
+    }
+}
+
+void TextEditor::setText(std::string str)
+{
+    text.setText(str);
+}
+
+bool TextEditor::click(unsigned i, unsigned j)
+{
+    if(i >= scroll->height ||
+       j >= txtLns->width + 2)
+    {
+        return false;
+    }
+    if(j < txtLns->width) {
+        text.click(i, j);
+    } else {
+    // if user clicks a scroll bar, we process it
+    // as a click onto the last symbol of the line
+        text.click(i, txtLns->width - 1);
+    }
+    cursor.scrlInd = scroll->position;
+    cursor.textInd = text.position;
+    cursor.curH = scroll->position - scroll->firstLine;
+    cursor.curW = std::min(txtLns->lines[cursor.curH][1] -
+                       txtLns->lines[cursor.curH][0],
+                       j);
+    return true;
+}
+
+bool TextEditor::mvUp()
+{
+    if(scroll->position == scroll->firstLine) {
+        if(scroll->position != 0) {
+            scroll->firstLine--;
+            assert(cursor.curH == 0);
+            click(cursor.curH, cursor.curW);
+        } else {
+            return false;
+        }
+    } else {
+        click(cursor.curH - 1, cursor.curW);
+    }
+    return true;
+}
+
+bool TextEditor::mvDown()
+{
+    if(scroll->position ==
+       scroll->firstLine + scroll->height - 1)
+    {
+        if(scroll->position != scroll->Npos - 1) {
+            scroll->firstLine++;
+            click(cursor.curH, cursor.curW);
+        } else {
+            return false;
+        }
+    } else {
+        click(cursor.curH + 1, cursor.curW);
+    }
+    return true;
+}
+
+bool TextEditor::mvLeft()
+{
+    return false;
+}
+
+bool TextEditor::mvRight()
+{
+    return false;
+}
+
+void TextEditor::write(char c)
+{
+    text.insert(c);
+}
+
+
 

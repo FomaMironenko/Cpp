@@ -15,7 +15,7 @@ void testArray()
     sub1.show();
 }
 
-void testText()
+void testMove()
 {
     FrameBox *master = FrameBox::create(TableBox::create(15, 20));
     TableBox *tab = master->getTable();
@@ -46,9 +46,41 @@ void testText()
     delete master;
 }
 
+void testTextEditor()
+{
+    std::string defaultStr = "hello the best world of all!";
+    std::string customStr;
+    std::cout << "Enter any text:\n";
+    char cur;
+    while(std::cin.get(cur))
+    {
+        customStr.push_back(cur);
+    }
+    
+    FrameBox *master = FrameBox::create(TableBox::create(15, 20));
+    TableBox *tab = master->getTable();
+    tab->addBox(FrameBox::create(TextEditor::create(defaultStr, 6, 8)), 4, 0);
+    tab->addBox(FrameBox::create(TextEditor::create(customStr, 6, 8)), 4, 10);
+    
+    FrameBox *defEdifFrame =
+        dynamic_cast<FrameBox*>((*tab)[0]->getBox());
+    assert(defEdifFrame);
+    TextEditor *defaultEditor =
+        defEdifFrame->getEditor();
+    assert(defaultEditor);
+    defaultEditor->click(0, 5);
+    defaultEditor->write(',');
+    
+    ArrayHandler arr(master->height(), master->width());
+    master->print(arr);
+    arr.show();
+}
+
 
 int main()
 {
     //testArray();
-    testText();
+    testMove();
+    std::cout << "\n\n\n";
+    testTextEditor();
 }

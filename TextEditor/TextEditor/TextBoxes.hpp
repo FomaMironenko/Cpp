@@ -11,6 +11,8 @@
 #include <string>
 #include <algorithm>
 
+#include "Handles.hpp"
+
 
 
 class Box;
@@ -159,7 +161,7 @@ private:
 class FrameBox : public Box
 {
     FrameBox() = delete;
-    FrameBox(TableBox *son): Box(son->height() + 2, son->width() + 2)
+    FrameBox(Box *son): Box(son->height() + 2, son->width() + 2)
     {
         data = new SubBox(son, this, 1, 1);
     }
@@ -169,13 +171,14 @@ public:
     
     void print(ArrayHandler & arr);
     
-    static FrameBox *create(TableBox *son) {
+    static FrameBox *create(Box *son) {
         return new FrameBox(son);
     }
     
     TableBox *getTable() {
-        return (TableBox*)data->getBox();
+        return dynamic_cast<TableBox*>(data->getBox());
     }
+    TextEditor *getEditor();
     
 private:
     SubBox *data;
@@ -209,6 +212,39 @@ public:
     {
         return new LineBox(s);
     }
+};
+
+
+class TextEditor : public Box
+{
+public:
+    TextEditor(unsigned h, unsigned w): Box(h, w), text()
+    {
+        scroll = &text.helper.scrl;
+        scroll->setH(h);
+        txtLns = &text.helper;
+        txtLns->setW(w);
+    }
+    
+    void setText(std::string str);
+    void print(ArrayHandler & arr);
+    static TextEditor *create(const std::string s, unsigned h, unsigned w)
+    {
+        auto tmp = new TextEditor(h, w);
+        tmp->setText(s);
+        return tmp;
+    }
+    bool click(unsigned i, unsigned j);
+    bool mvUp();
+    bool mvDown();
+    bool mvLeft();
+    bool mvRight();
+    void write(char c);
+    
+    Text text;
+    Scroll *scroll;
+    Lines *txtLns;
+    Coursor cursor;
 };
 
 
