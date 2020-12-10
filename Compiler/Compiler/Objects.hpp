@@ -11,30 +11,30 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <type_traits>
 
 
 class Object
 {
 public:
-    enum Lang {
-        CPasc,
-        Assembler
-    } langType;
     
     enum Type {
+    // statements
         Decl,
         Assi,
         Blck,
         Cond,
         Loop,
+    // Expressions
         Const,
         Var,
+        Not,
+    // Binary Expressions
         Sum,
         Prod,
         Less,
         And,
-        Or,
-        Not
+        Or
     };
     
     Object(unsigned Nch) : Nchildren(Nch), children(new Object*[Nch])
@@ -50,19 +50,20 @@ public:
     
     virtual Type getType() = 0;
     
+    template<class subClass>
+    bool ofclass()
+    {
+        return (dynamic_cast<subClass>(this) != NULL);
+    }
+    
     const unsigned Nchildren;
     Object **children;
 };
 
 
-
-
 class Statement : public Object
 {
 public:
-    static bool classof(Object * obj) {
-        return dynamic_cast<Statement*>(obj) != 0;
-    }
     virtual Type getType() = 0;
 };
 
@@ -72,9 +73,6 @@ public:
     Type getType() {
         return Object::Decl;
     }
-    
-    std::string name;
-    std::string type;
 };
 
 class Assignment : public Statement
@@ -83,7 +81,6 @@ public:
     Type getType() {
         return Object::Assi;
     }
-    std::string var;
 };
 
 class Block : public Statement
@@ -115,9 +112,6 @@ public:
 class Expression : public Object
 {
 public:
-    static bool classof(Object * obj) {
-        return dynamic_cast<Expression*>(obj) != 0;
-    }
     virtual Type getType() = 0;
 };
 
@@ -128,7 +122,7 @@ public:
     Type getType() {
         return Object::Const;
     }
-    float value;
+    int value;
 };
 
 class Var : public Expression
@@ -137,15 +131,21 @@ public:
     Type getType() {
         return Object::Var;
     }
+    std::string type;
     std::string name;
+};
+
+class Not : public Expression
+{
+public:
+    Type getType() {
+        return Object::Not;
+    }
 };
 
 class BinaryExpr : public Expression
 {
 public:
-    static bool classof(Object * obj) {
-        return dynamic_cast<BinaryExpr*>(obj) != 0;
-    }
     virtual std::string getOperation() = 0;
     virtual Type getType() = 0;
 };
@@ -194,76 +194,6 @@ public:
     }
     std::string getOperation() { return "||"; }
 };
-
-class Not : public Expression
-{
-public:
-    Type getType() {
-        return Object::Not;
-    }
-};
-
-
-
-
-class DECL : public Statement
-{
-    
-};
-
-class MOVC : public Statement
-{
-    
-};
-
-class MOV : public Statement
-{
-    
-};
-
-class ADD : public Expression
-{
-    
-};
-
-class MUL : public Expression
-{
-    
-};
-
-class LESS : public Expression
-{
-    
-};
-
-class AND : public Expression
-{
-    
-};
-
-class OR : public Expression
-{
-    
-};
-
-class NOT : public Expression
-{
-    
-};
-
-class LABEL : public Statement
-{
-    
-};
-
-class GOTOIF : public Statement
-{
-    
-};
-
-
-
-
 
 
 #endif /* Objects_hpp */
