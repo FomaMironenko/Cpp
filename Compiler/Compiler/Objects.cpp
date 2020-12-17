@@ -10,6 +10,9 @@
 
 std::map<Object*, unsigned> Object::refs;
 bool Object::quiet = true;
+unsigned Object::globCacheLevel = 0;
+unsigned Object::allocated = 0;
+unsigned Object::deallocated = 0;
 
 
 void Program::addInstr(Statement * stat)
@@ -50,8 +53,12 @@ Program::~Program()
 
 
 
-Object::Object(unsigned Nch) : Nchildren(Nch), children(new Object*[Nch])
+Object::Object(unsigned Nch) :
+    Nchildren(Nch),
+    children(new Object*[Nch]),
+    cacheLevel(globCacheLevel)
 {
+    allocated++;
     if(!quiet) {
         std::cout << "allocated " << this << "\n";
     }
@@ -60,21 +67,22 @@ Object::Object(unsigned Nch) : Nchildren(Nch), children(new Object*[Nch])
 
 Object::~Object()
 {
-   for(int i = 0; i < Nchildren; i++)
-   {
-       auto ref = refs.find(children[i]);
-       assert(ref != refs.end() &&
-              ref->second != 0);
-       ref->second--;
-       if(ref->second == 0) {
-           delete ref->first;
-           refs.erase(ref);
-       }
-   }
-   delete [] children;
-   if(!quiet){
-       std::cout << "deallocated " << this << "\n";
-   }
+    for(int i = 0; i < Nchildren; i++)
+    {
+        auto ref = refs.find(children[i]);
+        assert(ref != refs.end() &&
+               ref->second != 0);
+        ref->second--;
+        if(ref->second == 0) {
+            delete ref->first;
+            refs.erase(ref);
+        }
+    }
+    delete [] children;
+    deallocated++;
+    if(!quiet){
+        std::cout << "deallocated " << this << "\n";
+    }
 }
 
 void Object::assignChild(unsigned i, Object *child)

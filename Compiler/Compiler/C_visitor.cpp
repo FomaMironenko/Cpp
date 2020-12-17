@@ -6,6 +6,7 @@
 std::string C_compiler::compile(Program * prog)
 {
     assert(prog);
+    Object::globCacheLevel++;
     C_compiler compiler;
     Block *body = prog->toBlock();
     std::string res = "int main()\n";

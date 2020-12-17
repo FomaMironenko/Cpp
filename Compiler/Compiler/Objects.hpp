@@ -16,7 +16,7 @@
 #include <map>
 #include <type_traits>
 
-class Programm;
+class Program;
 
 class Object;
 
@@ -47,17 +47,17 @@ class Object
 public:
     
     enum Type {
-    // statements
+        // statements
         Decl,
         Assi,
         Blck,
         Cond,
         Loop,
-    // Expressions
+        // Expressions
         Const,
         Var,
         Not,
-    // Binary Expressions
+        // Binary Expressions
         Sum,
         Prod,
         Less,
@@ -79,7 +79,13 @@ public:
     
     const unsigned Nchildren;
     Object **children;
+    std::string cache;
+    unsigned cacheLevel;
+    
+    static unsigned globCacheLevel;
     static bool quiet;
+    static unsigned allocated;
+    static unsigned deallocated;
 protected:
     static std::map<Object *, unsigned> refs;
     void assignChild(unsigned i, Object *child);

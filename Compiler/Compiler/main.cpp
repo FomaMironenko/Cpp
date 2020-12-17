@@ -93,6 +93,49 @@ void compileTest()
     std::cout << "\n\n";
 }
 
+void cacheTest()
+{
+    Program prog;
+    
+    Const *C5  = new Const(5);
+    Const *C10 = new Const(10);
+    Const *C   = new Const(15);
+    Const *C1  = new Const(1);
+    Const *C0  = new Const(0);
+    Var *x = new Var("x", "int");
+    Var *y = new Var("y", "int");
+    
+    prog.addInstr(new Declaration(x, C5));
+    prog.addInstr(new Declaration(y, C10));
+    
+    Less *cond = new Less(y, C);
+    
+    Sum *addX = new Sum(x, C1);
+    Sum *addY = new Sum(y, C1);
+    Assignment *assiX = new Assignment(x, addX);
+    Assignment *assiY = new Assignment(y, addY);
+    Block *blck = new Block({assiX, assiY});
+    Loop *loop = new Loop(cond, blck);
+    
+    Assignment *reset = new Assignment(y, C0);
+    
+    prog.addInstr(loop);
+    prog.addInstr(reset);
+    prog.addInstr(loop);
+    prog.addInstr(reset);
+    
+    
+    std::cout << "\n\n";
+    std::cout << C_compiler::compile(&prog) << std::endl;
+    
+    y->name = "z";
+    C->value = 11;
+    std::cout << "\n\n";
+    std::cout << C_compiler::compile(&prog);
+    std::cout << "\n\n\n";
+}
+
+
 int main()
 {
     // to check memory usage uncomment the following line
@@ -102,7 +145,9 @@ int main()
     
     // visitorTest1(ccomp, ascomp);
     // visitorTest2(ccomp, ascomp);
-    compileTest();
-    
-    std::cout << "\nfinished tests\n";
+    // compileTest();
+    cacheTest();
+    std::cout << "allocated   Objects: " << Object::allocated << "\n";
+    std::cout << "deallocated Objects: " << Object::deallocated << "\n\n";
+    std::cout << "FINISHED TESTS\n\n";
 }

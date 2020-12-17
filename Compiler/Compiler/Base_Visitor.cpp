@@ -3,50 +3,71 @@
 
 std::string Visitor::visit(Object *obj)
 {
+    if(!obj->cache.empty() &&
+       obj->cacheLevel == Object::globCacheLevel)
+    {
+        return obj->cache;
+    }
+    
+    std::string res;
     switch (obj->getType())
     {
         case(Object::Decl):
-            return visitDecl((Declaration*)obj);
+            res = visitDecl((Declaration*)obj);
+            break;
             
         case(Object::Assi):
-            return visitAssi((Assignment*)obj);
+            res = visitAssi((Assignment*)obj);
+            break;
             
         case(Object::Blck):
-            return visitBlock((Block*)obj);
+            res = visitBlock((Block*)obj);
+            break;
             
         case(Object::Cond):
-            return visitCond((Conditional*)obj);
+            res = visitCond((Conditional*)obj);
+            break;
             
         case(Object::Loop):
-            return visitLoop((Loop*)obj);
+            res = visitLoop((Loop*)obj);
+            break;
             
         case(Object::Const):
-            return visitConst((Const*)obj);
+            res = visitConst((Const*)obj);
+            break;
             
         case(Object::Var):
-            return visitVar((Var*)obj);
+            res = visitVar((Var*)obj);
+            break;
             
         case(Object::Not):
-            return visitNot((Not*)obj);
+            res = visitNot((Not*)obj);
+            break;
             
         case(Object::Sum):
-            return visitSum((Sum*)obj);
+            res = visitSum((Sum*)obj);
+            break;
             
         case(Object::Prod):
-            return visitProd((Prod*)obj);
+            res = visitProd((Prod*)obj);
+            break;
             
         case(Object::Less):
-            return visitLess((Less*)obj);
+            res = visitLess((Less*)obj);
+            break;
             
         case(Object::And):
-            return visitAnd((And*)obj);
+            res = visitAnd((And*)obj);
+            break;
             
         case(Object::Or):
-            return visitOr((Or*)obj);
+            res = visitOr((Or*)obj);
+            break;
             
         default:
             assert(false && "unknown object type");
     }
-    return "";
+    obj->cacheLevel = Object::globCacheLevel;
+    return (obj->cache = res);
 }
 

@@ -16,6 +16,7 @@
 std::string Assembl_compiler::compile(Program * prog)
 {
     assert(prog);
+    Object::globCacheLevel++;
     Assembl_compiler compiler;
     Block *body = prog->toBlock();
     std::string res = compiler.visit(body);
