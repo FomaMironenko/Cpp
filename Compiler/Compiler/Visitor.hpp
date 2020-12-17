@@ -17,7 +17,7 @@
 class Visitor
 {
 public:
-    
+
     std::string visit(Object *);
     
 protected:
@@ -37,14 +37,14 @@ protected:
     virtual std::string visitAnd(And *) = 0;
     virtual std::string visitOr(Or *) = 0;
     virtual std::string visitNot(Not *) = 0;
-    
-    std::string programm;
 };
 
 
 
 class C_compiler : public Visitor
 {
+public:
+    static std::string compile(Program *);
 private:
     std::string visitDecl(Declaration *);
     std::string visitAssi(Assignment *);
@@ -74,8 +74,9 @@ private:
 
 class Assembl_compiler : public Visitor
 {
+public:
+    static std::string compile(Program *);
 private:
-    
     std::string visitDecl(Declaration *);
     std::string visitAssi(Assignment *);
     std::string visitBlock(Block *);

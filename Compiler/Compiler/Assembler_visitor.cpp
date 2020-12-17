@@ -13,6 +13,16 @@
  * is a new variable tmp{Ntmp} which actually equals the argument expression.
  */
 
+std::string Assembl_compiler::compile(Program * prog)
+{
+    assert(prog);
+    Assembl_compiler compiler;
+    Block *body = prog->toBlock();
+    std::string res = compiler.visit(body);
+    delete body;
+    return res;
+}
+
 std::string Assembl_compiler::visitDecl(Declaration *decl)
 {
     assert(decl->Nchildren == 1 ||
@@ -43,7 +53,7 @@ std::string Assembl_compiler::visitAssi(Assignment *assi)
     
     res += visit(assi->children[1]);
     // now "tmp{Ntmp}" contains the expression
-    std::string var1 = std::string("tmp") + std::to_string(Ntmp) + ";\n";
+    std::string var1 = std::string("tmp") + std::to_string(Ntmp);
     res += "MOV " + var->name + " " + var1 + ";\n";
     return res;
 }
@@ -51,14 +61,13 @@ std::string Assembl_compiler::visitAssi(Assignment *assi)
 std::string Assembl_compiler::visitBlock(Block *blck)
 {
     // cut block with empty lines
-    std::string res = "\n";
+    std::string res;
     Object **children = blck->children;
     for(unsigned i = 0; i < blck->Nchildren; i++)
     {
         assert(children[i]->ofclass<Statement*>());
         res += visit(children[i]);
     }
-    res += "\n";
     return res;
 }
 
@@ -70,7 +79,7 @@ std::string Assembl_compiler::visitCond(Conditional *cond)
     assert(children[0]->ofclass<Expression*>() &&
            children[1]->ofclass<Statement*>());
     
-    std::string res;
+    std::string res = "\n";
     uint64_t curLabel = ++Nlab;
     std::string elseBr = "else" + std::to_string(curLabel);
     std::string end   = "end" + std::to_string(curLabel);
@@ -82,10 +91,10 @@ std::string Assembl_compiler::visitCond(Conditional *cond)
     res += "MOV " + doElse + " " + ifCond + ";\n";
     res += "NOT " + doElse + ";\n";
     
-    res += "GOTOIF " + doElse + " " + elseBr + ";\n";
+    res += "\nGOTOIF " + doElse + " " + elseBr + ";\n";
     res += visit(children[1]);
     res += "GOTOIF true " + end + "\n";
-    res += "LABEL " + elseBr + ";\n";
+    res += "\nLABEL " + elseBr + ";\n";
     if(cond->Nchildren == 3) {
         assert(children[2]->ofclass<Statement*>());
         res += visit(children[2]);
@@ -106,14 +115,14 @@ std::string Assembl_compiler::visitLoop(Loop *loop)
     std::string begin = "begin" + std::to_string(curLabel);
     std::string end   = "end" + std::to_string(curLabel);
     
-    res += "LABEL " + begin + ";\n";
+    res += "\nLABEL " + begin + ";\n";
     res += visit(children[0]);
     std::string loopCond  = std::string("tmp") + std::to_string(Ntmp);
     std::string terminate = std::string("tmp") + std::to_string(++Ntmp);
     res += "bool " + terminate + ";\n";
     res += "MOV " + terminate + " " + loopCond + ";\n";
     res += "NOT " + terminate + ";\n";
-    res += "GOTOIF " + terminate + " " + end + ";\n";
+    res += "\nGOTOIF " + terminate + " " + end + ";\n";
     
     res += visit(children[1]);
     

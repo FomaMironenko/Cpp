@@ -3,6 +3,17 @@
 
 //-----C_compiler-----//
 
+std::string C_compiler::compile(Program * prog)
+{
+    assert(prog);
+    C_compiler compiler;
+    Block *body = prog->toBlock();
+    std::string res = "int main()\n";
+    res += compiler.visit(body);
+    delete body;
+    return res;
+}
+
 std::string C_compiler::visitDecl(Declaration * decl)
 {
     assert(decl->Nchildren == 1 ||
@@ -54,18 +65,18 @@ std::string C_compiler::visitCond(Conditional * cond)
     assert(children[0]->ofclass<Expression*>() &&
            children[1]->ofclass<Statement*>());
     
-    res += tabs() + "if( " + visit(children[0]) + " ) {\n";
-    indent++;
+    res += tabs() + "if( " + visit(children[0]) + " )\n";
+    if(!children[1]->ofclass<Block*>()) { indent++; }
     res += visit(children[1]);
-    indent--;
-    res += tabs() + "}\n";
+    if(!children[1]->ofclass<Block*>()) { indent--; }
+    
     if(cond->Nchildren == 3) {
         assert(children[2]->ofclass<Statement*>());
-        res += tabs() + "else {\n";
-        indent++;
+        res += tabs() + "else\n";
+        if(!children[1]->ofclass<Block*>()) { indent++; }
         res += visit(children[2]);
-        indent--;
-        res += tabs() + "}\n";
+        if(!children[1]->ofclass<Block*>()) { indent--; }
+        res += tabs() + "\n";
     }
     
     return res;
@@ -79,11 +90,11 @@ std::string C_compiler::visitLoop(Loop * loop)
     assert(children[0]->ofclass<Expression*>() &&
            children[1]->ofclass<Statement*>());
     
-    res += tabs() + "while( " + visit(children[0]) + " ) {\n";
-    indent++;
+    res += tabs() + "while( " + visit(children[0]) + " )\n";
+    if(!children[1]->ofclass<Block*>()) { indent++; }
     res += visit(children[1]);
-    indent--;
-    res += tabs() + "}\n";
+    if(!children[1]->ofclass<Block*>()) { indent--; }
+    res += tabs() + "\n";
     
     return res;
 }

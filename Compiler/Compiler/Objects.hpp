@@ -9,13 +9,41 @@
 #define Objects_hpp
 
 #include <stdio.h>
+#include <iostream>
 #include <string>
 #include <vector>
+#include <list>
+#include <map>
 #include <type_traits>
+
+class Programm;
+
+class Object;
+
+class Statement;
+class Declaration;
+class Assignment;
+class Block;
+class Conditional;
+class Loop;
+
+class Expression;
+class Const;
+class Var;
+class Not;
+
+class BinaryExpr;
+class Sum;
+class Prod;
+class Less;
+class And;
+class Or;
+
 
 
 class Object
 {
+    friend class Program;
 public:
     
     enum Type {
@@ -37,16 +65,8 @@ public:
         Or
     };
     
-    Object(unsigned Nch) : Nchildren(Nch), children(new Object*[Nch])
-    {    }
-    virtual ~Object()
-    {
-        for(int i = 0; i < Nchildren; i++)
-        {
-            delete children[i];
-        }
-        delete [] children;
-    }
+    Object(unsigned Nch);
+    virtual ~Object();
     
     virtual Type getType() = 0;
     
@@ -56,20 +76,28 @@ public:
         return (dynamic_cast<subClass>(this) != NULL);
     }
     
+    
     const unsigned Nchildren;
     Object **children;
+    static bool quiet;
+protected:
+    static std::map<Object *, unsigned> refs;
+    void assignChild(unsigned i, Object *child);
 };
 
 
 class Statement : public Object
 {
 public:
+    Statement(unsigned Nch): Object(Nch)
+    {   }
     virtual Type getType() = 0;
 };
 
 class Declaration : public Statement
 {
 public:
+    Declaration(::Var *var, Expression * expr = nullptr);
     Type getType() {
         return Object::Decl;
     }
@@ -78,6 +106,7 @@ public:
 class Assignment : public Statement
 {
 public:
+    Assignment(::Var *var, Expression *expr);
     Type getType() {
         return Object::Assi;
     }
@@ -86,6 +115,7 @@ public:
 class Block : public Statement
 {
 public:
+    Block(std::vector<Statement*>);
     Type getType() {
         return Object::Blck;
     }
@@ -94,6 +124,7 @@ public:
 class Conditional : public Statement
 {
 public:
+    Conditional(Expression *, Statement * _if, Statement * _else = nullptr);
     Type getType() {
         return Object::Cond;
     }
@@ -102,6 +133,7 @@ public:
 class Loop : public Statement
 {
 public:
+    Loop(Expression *, Statement *);
     Type getType() {
         return Object::Loop;
     }
@@ -112,6 +144,8 @@ public:
 class Expression : public Object
 {
 public:
+    Expression(unsigned Nch): Object(Nch)
+    {   }
     virtual Type getType() = 0;
 };
 
@@ -119,6 +153,7 @@ public:
 class Const : public Expression
 {
 public:
+    Const(int val);
     Type getType() {
         return Object::Const;
     }
@@ -128,6 +163,7 @@ public:
 class Var : public Expression
 {
 public:
+    Var(std::string _name, std::string _type);
     Type getType() {
         return Object::Var;
     }
@@ -138,6 +174,7 @@ public:
 class Not : public Expression
 {
 public:
+    Not(Expression *);
     Type getType() {
         return Object::Not;
     }
@@ -146,6 +183,7 @@ public:
 class BinaryExpr : public Expression
 {
 public:
+    BinaryExpr(Expression *, Expression *);
     virtual std::string getOperation() = 0;
     virtual Type getType() = 0;
 };
@@ -153,6 +191,7 @@ public:
 class Sum : public BinaryExpr
 {
 public:
+    Sum(Expression *, Expression *);
     Type getType() {
         return Object::Sum;
     }
@@ -162,6 +201,7 @@ public:
 class Prod : public BinaryExpr
 {
 public:
+    Prod(Expression *, Expression *);
     Type getType() {
         return Object::Prod;
     }
@@ -171,6 +211,7 @@ public:
 class Less : public BinaryExpr
 {
 public:
+    Less(Expression *, Expression *);
     Type getType() {
         return Object::Less;
     }
@@ -180,6 +221,7 @@ public:
 class And : public BinaryExpr
 {
 public:
+    And(Expression *, Expression *);
     Type getType() {
         return Object::And;
     }
@@ -189,10 +231,23 @@ public:
 class Or : public BinaryExpr
 {
 public:
+    Or(Expression *, Expression *);
     Type getType() {
         return Object::Or;
     }
     std::string getOperation() { return "||"; }
+};
+
+
+class Program
+{
+public:
+    Program() = default;
+    ~Program();
+    void addInstr(Statement *);
+    Block *toBlock();
+private:
+    std::list<Statement*> instructions;
 };
 
 
