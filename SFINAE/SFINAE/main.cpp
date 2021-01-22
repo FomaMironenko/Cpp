@@ -104,6 +104,17 @@ struct is_pointer<T*>
     static const bool value = true;
 };
 
+template<class T>
+struct remove_ptr
+{
+    using type = T;
+};
+template<class T>
+struct remove_ptr<T*>
+{
+    using type = T;
+};
+
 
 template<class T>
 struct is_ref
@@ -115,6 +126,17 @@ struct is_ref<T&>
 {
     static const bool value = true;
 };
+
+
+template <typename T>
+typename remove_ptr<T>::type get_value(T t)
+{
+    if constexpr(is_pointer<T>::value) {
+        return *t;
+    } else {
+        return t;
+    }
+}
 
 
 
@@ -156,9 +178,10 @@ int main() {
     << std::endl;*/
     
     std::vector<int> V {2, 3, 4};
+    int a  = V[0];
+    int *b = &V[1];
     
-    std::cout << is_pointer<decltype(&*V.begin())>::value << "\n" <<
-                 is_ref<decltype(*V.begin())>::value << "\n\n";
+    std::cout << get_value(a) << " " << get_value(b) << "\n";
     
     return 0;
 }

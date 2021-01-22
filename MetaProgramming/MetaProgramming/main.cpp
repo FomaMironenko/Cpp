@@ -240,9 +240,130 @@ struct Applier<Pair, TypeList<H, T>>
 
 
 
+//----NAgrs----//
+template <int ... Args>
+struct NArgs
+{
+    static const size_t value = sizeof ...(Args);
+};
+//~~~~NAgrs~~~~//
+
+
+//----IntList----//
+template<int ... members>
+struct IntList;
+template<int h, int ... t>
+struct IntList<h, t...>
+{
+    static const int Head = h;
+    using Tail = IntList<t ...>;
+};
+template<>
+struct IntList <> {};
+//~~~~IntList~~~~//
+
+
+//----Length----//
+template<typename T>
+struct IntLength;
+template<int ... Args>
+struct IntLength<IntList<Args...> >
+{
+    static const size_t value = NArgs<Args...>::value;
+};
+//~~~~Length~~~~//
+
+
+//----Cons----//
+template<int E, typename IL>
+struct Cons;
+template<int E, int ... Args>
+struct Cons<E, IntList<Args...>>
+{
+    using type = IntList<E, Args...>;
+};
+//~~~~Cons~~~~//
+
+
+//----Concat----//
+template<typename IL1, typename IL2>
+struct Concat;
+template <int ... A1, int ... A2>
+struct Concat<IntList<A1...>, IntList<A2...>>
+{
+    using type = IntList<A1..., A2...>;
+};
+//~~~~Concat~~~~//
+
+
+//----Generate----//
+template<int N, int E = 0>
+struct Generate
+{
+    using type = typename Cons<E, typename Generate<N-1, E+1>::type>::type;
+};
+template<unsigned E>
+struct Generate<0, E>
+{
+    using type = IntList<>;
+};
+//~~~~Generate~~~~//
+
+
+//----Print----//
+template<typename IL>
+void printIntList()
+{
+    std::cout << IL::Head << " ";
+    printIntList<typename IL::Tail>();
+}
+template<>
+void printIntList<IntList<>>()
+{
+    std::cout << "\n";
+}
+//~~~~Print~~~~//
+
+
+//----Zip----//
+template<template <int A, int B> class Bin, typename IL1, typename IL2>
+struct Zip
+{
+    using type = typename Cons< Bin<IL1::Head, IL2::Head>::value,
+                                typename Zip<Bin,
+                                            typename IL1::Tail,
+                                            typename IL2::Tail
+                                            >::type
+                                >::type;
+};
+template<template <int A, int B> class Bin>
+struct Zip<Bin, IntList<>, IntList<> >
+{
+    using type = IntList<>;
+};
+//~~~~Zip~~~~//
+
+
+template <bool ...Vals>
+bool all()
+{
+    return ((Vals == 1) && ...);
+}
+
+
+
+
+
+template<int A, int B>
+struct Mult
+{
+    static const int value = A * B;
+};
+
 
 int main()
 {
+    /*
     typedef TypeList<uint64_t,
                 TypeList<char,
                     TypeList<short,
@@ -290,6 +411,25 @@ int main()
             > TreeFamily;
     
     typedef TreeInherit<TreeFamily> Multi;
+     */
+    
+    
+    using Lst = IntList<1, 2, 3, 4, 5>;
+    using L = IntList<>;
+    using L1 = Cons<3, L >::type;
+    using L2 = Cons<2, L1>::type;
+    using L3 = Cons<1, L2>::type;
+    using L4 = Concat<L3, L3>::type;
+    
+    using L5 = Generate<100>::type;
+    
+    using L6 = Zip<Mult, L4, L4>::type;
+    
+    printIntList<L6>();
+    std::cout << all<IntLength<L1>::value == 1,
+                     IntLength<L4>::value == 6,
+                     sizeof(int) == 4>()
+              << "\n";
     
     
     return EXIT_SUCCESS;
