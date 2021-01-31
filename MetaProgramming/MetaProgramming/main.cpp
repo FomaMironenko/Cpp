@@ -8,6 +8,7 @@
 #include <iostream>
 #include <type_traits>
 #include <vector>
+#include <tuple>
 
 
 //---- TYPE LIST ----//
@@ -344,6 +345,29 @@ struct Zip<Bin, IntList<>, IntList<> >
 //~~~~Zip~~~~//
 
 
+//----Call a function with parameters from tuple----//
+template<class F, class Tup, class IL>
+struct Tmp;
+template<class F, class ...Args, int ...Inds>
+struct Tmp<F, std::tuple<Args...>, IntList<Inds...>>
+{
+    static constexpr decltype(std::declval<F>()(std::declval<Args>()...))
+    apply(F f, std::tuple<Args...> t)
+    {
+        return f(std::get<Inds>(t)...);
+    }
+};
+
+template<class F, class ...Args>
+constexpr auto apply(F f, std::tuple<Args...> tup) ->
+    decltype(std::declval<F>()(std::declval<Args>()...))
+{
+    using T = typename Generate<sizeof...(Args)>::type;
+    return Tmp<F, std::tuple<Args...>, T>::apply(f, tup);
+}
+//~~~~Call a function with parameters from tuple~~~~//
+
+
 template <bool ...Vals>
 bool all()
 {
@@ -430,6 +454,10 @@ int main()
                      IntLength<L4>::value == 6,
                      sizeof(int) == 4>()
               << "\n";
+    
+    auto f = [](int x, double y, double z) { return x + y + z; };
+    auto t = std::make_tuple(30, 5.0, 1.6);
+    std::cout << apply(f, t) << "\n";
     
     
     return EXIT_SUCCESS;

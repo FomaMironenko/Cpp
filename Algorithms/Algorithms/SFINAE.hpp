@@ -53,4 +53,15 @@ struct canMemcpy
 
 
 
+template<class Iterator>
+constexpr bool is_rand_access()
+{
+    return std::is_same<
+        typename std::iterator_traits<Iterator>::iterator_category,
+        std::random_access_iterator_tag
+    >::value;
+}
+
+
+
 #endif /* Header_h */

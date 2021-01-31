@@ -9,6 +9,7 @@
 #include "Iterator.hpp"
 #include "Copy.hpp"
 #include "Find.hpp"
+#include "MapReduce.hpp"
 
 
 class MyTimer {
@@ -75,6 +76,13 @@ int main()
     
     const int N = 1e6;
     testTime(N);
+    
+    
+    int sum = map_reduce(
+                l.begin(), l.end(),
+                [](int i){return i*i;},
+                std::plus<int>(), 4);
+    std::cout << "ok\n";
     
     
     return EXIT_SUCCESS;
